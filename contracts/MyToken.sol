@@ -13,17 +13,16 @@ contract MyToken {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
+         //msg.sender : 배포한 사람
+        _mint(1 * 10**uint256(decimals), msg.sender); //1 * 10^18
+    
     }
+    //화페 발행시 mint
     //external 외부에서 호출 public 외부 내부 호출
-    // function totalSupply() external view returns (uint256) {
-    //     return totalSupply;
-    // }
+    //internal 내부에서만 호출 _를 앞에 붙임
+    function _mint(uint256 amount, address owner) internal {
+        totalSupply += amount;
+        balanceOf[owner] += amount;
+    }
 
-    // function balanceOf(address owner) external view returns (uint256) {
-    //     return balanceOf[owner];
-    // }
-
-    // function name() external view returns (string memory) {
-    //     return name;
-    // }
 }

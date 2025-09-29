@@ -20,10 +20,11 @@ describe("MyToken deploy", () => {
         expect(await myToken.decimals()).to.equal(18);
     });
     it("should return 0 totalSupply", async () => {
-        expect(await myToken.totalSupply()).to.equal(0);
+        expect(await myToken.totalSupply()).to.equal(1n * 10n**18n);
     });
-    it("should return 0 balance for signer 0", async () => {
+    //1MTK = 10^18
+    it("should return 1MTK balance for signer 0", async () => {
         const signer0 = signers[0];
-        expect(await myToken.balanceOf(signer0.address)).to.equal(0);
+        expect(await myToken.balanceOf(signer0.address)).to.equal(1n * 10n**18n);
     });
 });
