@@ -51,6 +51,33 @@ describe("My Token", () => {
             await expect(myTokenC.transfer(hre.ethers.parseUnits((mintingAmount + 1n).toString(), decimals), signer1.address)).to.be.revertedWith("insufficient balance");
         });
     });
-});
 
-//nvm use v20.19.4
+    describe("TransferFrom", () => {
+        it("should emit Approval event", async () => {
+            const signer1 = signers[1];
+            await expect(myTokenC.approve(signer1.address, hre.ethers.parseUnits("10", decimals)))
+                .to.emit(myTokenC, "Approval")
+                .withArgs(signer1.address, hre.ethers.parseUnits("10", decimals));
+        });
+        it("should be reverted with insufficient allowance error", async () => {
+            const signer0 = signers[0];
+            const signer1 = signers[1];
+            await expect(myTokenC.connect(signer1).transferFrom(signer0.address, signer1.address, hre.ethers.parseUnits("1", decimals)))
+                .to.be.revertedWith("insufficient allowance");
+        });
+    });
+    describe("Approve & TransferFrom homework", () => {
+        it("should transfer 7.77MTK from signer0 to signer1", async () => {
+            const signer0 = signers[0]; //0번째의 주소얻기
+            const signer1 = signers[1]; //1번째의 얻기
+            await expect(myTokenC.approve(signer1.address, hre.ethers.parseUnits("10", decimals))) //10의 권한을 부여
+                        .to.emit(myTokenC, "Approval")
+                        .withArgs(signer1.address, hre.ethers.parseUnits("10", decimals)); //1에게 부여한 approval이벤트가 확인
+            await expect(myTokenC.connect(signer1).transferFrom(signer0.address, signer1.address, hre.ethers.parseUnits("7.77", decimals)))//1이 자신으로 7.77전송
+                .to.emit(myTokenC, "Transfer")
+                .withArgs(signer0.address, signer1.address, hre.ethers.parseUnits("7.77", decimals));
+            expect(await myTokenC.balanceOf(signer1.address)).to.equal(hre.ethers.parseUnits("7.77", decimals));
+            expect(await myTokenC.balanceOf(signer0.address)).to.equal(hre.ethers.parseUnits("92.23", decimals));
+        });
+    });
+});
