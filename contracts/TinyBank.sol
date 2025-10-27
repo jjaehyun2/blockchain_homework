@@ -44,18 +44,23 @@ contract TinyBank {
         stakingtoken = _stakingToken;
     }   
 
-    function distributeReward(address to) internal {
-        uint256 blocks = block.number - lastClaimedBlock[to];
-        uint256 reward = (blocks * rewardPerBlock * staked[to]) / totalStaked; //1MT/block
-        stakingtoken.mint(reward, to); //MyToken contract의 mint 호출
+    //who, when?
+    // genesis staking
+    modifier updateReward(address to) { //internel
+        if (staked[to] > 0) {
+            uint256 blocks = block.number - lastClaimedBlock[to];   
+            uint256 reward = (blocks * rewardPerBlock * staked[to]) / totalStaked; //1MT/block
+            stakingtoken.mint(reward, to); //MyToken contract의 mint 호출
+        }
+        
         lastClaimedBlock[to] = block.number;
+        _; //어떤 함수 앞에 insert 효과 //caller's code
     }
 
 
     //approve -> transferFrom
-    function stake(uint256 _amount) external {
+    function stake(uint256 _amount) external updateReward(msg.sender) {
         require(_amount >= 0, "cannot stake 0 amount");
-        distributeReward(msg.sender);
         //MyToken contract의 approve가 먼저 호출되어야함
         stakingtoken.transferFrom(msg.sender, address(this), _amount); //TinyBank contract로 토큰 전송
         staked[msg.sender] += _amount;
@@ -63,9 +68,8 @@ contract TinyBank {
         emit Staked(msg.sender, _amount);
     }
 
-    function withdraw(uint256 _amount) external {
+    function withdraw(uint256 _amount) external updateReward(msg.sender) {
         require(staked[msg.sender] >= _amount, "insufficient staked token");
-        distributeReward(msg.sender);
         stakingtoken.transfer(_amount, msg.sender); //TinyBank contract에서 토큰 전송
         staked[msg.sender] -= _amount;
         totalStaked -= _amount;
