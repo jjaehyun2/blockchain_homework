@@ -41,7 +41,10 @@ contract MyToken {
     }
 
 
-    //화페 발행시 mint
+    function mint(uint256 amount, address owner) external {
+        _mint(amount, owner);
+    }
+    //화폐 발행시 mint
     //external 외부에서 호출 public 외부 내부 호출
     //internal 내부에서만 호출 _를 앞에 붙임
     function _mint(uint256 amount, address owner) internal {
