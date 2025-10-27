@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-contract MyToken {
+import "./ManagedAccess.sol";
+
+contract MyToken is ManagedAccess {
     event Transfer(address indexed from, address indexed to, uint256 value); //string을 hash로 만든게 topic값 //indexing topics에 넣어달라
     event Approval(address indexed spender, uint256 amount);
 
@@ -13,14 +15,14 @@ contract MyToken {
     mapping(address => uint256) public balanceOf;//누가 몇개//조회하는거는 동일한 값을 리턴해준다 tx를 만들 필요없음
     mapping(address => mapping(address => uint256)) public allowance; //approve, transferFrom
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _amount) {
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _amount) ManagedAccess(msg.sender, msg.sender) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
-         //msg.sender : 배포한 사람
-        _mint(_amount * 10 ** uint256(decimals), msg.sender);
-    
+        _mint(_amount * 10 ** uint256(decimals), msg.sender);    
     }
+
+
 
     function approve(address spender, uint256 amount) external {
         allowance[msg.sender][spender] = amount;
@@ -41,17 +43,22 @@ contract MyToken {
     }
 
 
-    function mint(uint256 amount, address owner) external {
-        _mint(amount, owner);
+    function mint(uint256 amount, address to) external onlyManager {
+        _mint(amount, to);
     }
+
+    function setManager(address _manager) external onlyOwner {
+        manager = _manager;
+    }
+
     //화폐 발행시 mint
     //external 외부에서 호출 public 외부 내부 호출
     //internal 내부에서만 호출 _를 앞에 붙임
-    function _mint(uint256 amount, address owner) internal {
+    function _mint(uint256 amount, address to) internal {
         totalSupply += amount;
-        balanceOf[owner] += amount;
+        balanceOf[to] += amount;
 
-        emit Transfer(address(0), owner, amount); 
+        emit Transfer(address(0), to, amount); 
     }
 
     function transfer(uint256 amount, address to) external { //tx로 호출됨 -> tx생성
