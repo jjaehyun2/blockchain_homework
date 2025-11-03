@@ -23,6 +23,7 @@
 pragma solidity ^0.8.28;
 
 import "./ManagedAccess.sol";
+import "./MultiManagedAccess.sol";
 
 interface IMyToken {
     function transferFrom(address from, address to, uint256 amount) external;
@@ -30,7 +31,7 @@ interface IMyToken {
     function mint(uint256 amount, address owner) external;
 }
 
-contract TinyBank is ManagedAccess {
+contract TinyBank is MultiManagedAccess {
     event Staked(address from, uint256 amount);
     event Withdrawn(uint256 amount, address to);
 
@@ -44,12 +45,12 @@ contract TinyBank is ManagedAccess {
     mapping(address => uint256) public staked; //누가 얼마 예치했는지
     uint256 public totalStaked; //전체 예치된 양
 
-    constructor(IMyToken _stakingToken) ManagedAccess(msg.sender, msg.sender) {
+    constructor(IMyToken _stakingToken, address[MANAGER_NUMBERS] memory _managers) MultiManagedAccess(msg.sender, _managers) {
         stakingtoken = _stakingToken;
         rewardPerBlock = defaultRewardPerBlock;
     }   
 
-    function setRewardPerBlock(uint256 _amount) external onlyManager {
+    function setRewardPerBlock(uint256 _amount) external onlyAllConfirmed {
         rewardPerBlock = _amount;
     }   
 

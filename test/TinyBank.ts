@@ -13,7 +13,15 @@ describe("TinyBank", () => {
         myTokenC = await hre.ethers.deployContract("MyToken", [
             "My Token", "MTK", DECIMALS, MINTING_AMOUNT
         ]);
-        TinyBankC = await hre.ethers.deployContract("TinyBank", [await myTokenC.getAddress()]);
+        const managers = [
+            signers[10].address,
+            signers[11].address,
+            signers[12].address,
+            signers[13].address,
+            signers[14].address
+        ] as [string, string, string, string, string];
+
+        TinyBankC = await hre.ethers.deployContract("TinyBank", [await myTokenC.getAddress(), managers]);
         await myTokenC.setManager(await TinyBankC.getAddress());
     });
 
@@ -80,4 +88,39 @@ describe("TinyBank", () => {
 
         });
     });
+//--------------------------------------------------------------------------------------------------------
+    describe("Multi-Manager Access Control", async () => {
+        const newReward = hre.ethers.parseUnits("10", DECIMALS);
+        it("should revert when a non-manager tries to confirm", async () => {
+            await expect(
+                TinyBankC.connect(signers[5]).confirm()
+            ).to.be.revertedWith(
+                "You are not one of managers"
+            );
+        });
+
+        it("should revert setRewardPerBlock if not all managers confirmed", async () => {
+            await TinyBankC.connect(signers[10]).confirm();
+            await TinyBankC.connect(signers[11]).confirm();
+            await TinyBankC.connect(signers[12]).confirm();
+
+            await expect(
+                TinyBankC.connect(signers[0]).setRewardPerBlock(newReward)
+            ).to.be.revertedWith(
+                "Not all managers are confirmed yet"
+            );
+        });
+
+        it("should allow setRewardPerBlock after all managers confirm", async () => {
+            for (let i = 10; i < 15; i++) {
+                await TinyBankC.connect(signers[i]).confirm();
+            }
+            await expect(
+                TinyBankC.connect(signers[10]).setRewardPerBlock(newReward)
+            ).to.not.be.reverted;
+
+            expect(await TinyBankC.rewardPerBlock()).to.equal(newReward);
+        });
+    });
+    //--------------------------------------------------------------------------------------------------------
 });
