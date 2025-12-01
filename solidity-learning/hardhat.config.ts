@@ -14,6 +14,36 @@ const config: HardhatUserConfig = {
                 "0xcc3feea5b7b2047fd8de669ba2759b1f6fd9ac37642758752bfc2dab321b5d82",
             ],
         },
-    }, 
+    },
+    etherscan: {
+    apiKey: {
+      kairos: "unnecessary",
+    },
+    customChains: [
+      {
+        network: "kairos",
+        chainId: 1001,
+        urls: {
+          apiURL: "https://kairos-api.kaiascan.io/hardhat-verify",
+          browserURL: "https://kairos.kaiascan.io",
+        },
+      },
+    ],
+  }, 
+  etherscan: {
+    apiKey: {
+      kairos: "unnecessary",
+    },
+    customChains: [
+      {
+        network: "kairos",
+        chainId: 1001,
+        urls: {
+          apiURL: "https://kairos-api.kaiascan.io/hardhat-verify",
+          browserURL: "https://kairos.kaiascan.io",
+        },
+      },
+    ],
+  },
 };
 export default config;
